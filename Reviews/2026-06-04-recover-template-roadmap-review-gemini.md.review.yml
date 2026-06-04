@@ -1,0 +1,11 @@
+schema_version: 1
+status: success
+agent: gemini
+builder: codex
+request: 'Reviews/2026-06-04-recover-template-roadmap-review-request.md'
+output: 'Reviews/2026-06-04-recover-template-roadmap-review-gemini.md'
+verdict: APPROVED
+started_at: '2026-06-04T03:10:12Z'
+finished_at: '2026-06-04T03:11:39Z'
+exit_code: 0
+home_strategy: login_home
