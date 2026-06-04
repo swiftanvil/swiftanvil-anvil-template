@@ -212,13 +212,30 @@ public struct TemplateParser: Sendable {
         }
         // "\." is a special variable name referencing the current element in loops
         if name == "." { return }
-        let first = name.first!
+        // Allow dot-paths that start with "." (e.g. ".name", ".url") for loop item field access
+        let stripped = name.hasPrefix(".") ? String(name.dropFirst()) : name
+        let first = stripped.first!
         guard first.isLetter || first == "_" else {
             throw TemplateError.parseError(message: "Invalid variable name '\(name)'", position: position)
         }
-        for char in name.dropFirst() {
+        for char in stripped.dropFirst() {
             guard char.isLetter || char.isNumber || char == "_" || char == "." else {
                 throw TemplateError.parseError(message: "Invalid variable name '\(name)'", position: position)
+            }
+        }
+        // Validate each component of a dot-path (e.g. "user.name" or ".name.version")
+        let components = stripped.split(separator: ".")
+        for component in components {
+            guard let cfirst = component.first else {
+                throw TemplateError.parseError(message: "Invalid variable name '\(name)'", position: position)
+            }
+            guard cfirst.isLetter || cfirst == "_" else {
+                throw TemplateError.parseError(message: "Invalid variable name '\(name)'", position: position)
+            }
+            for char in component.dropFirst() {
+                guard char.isLetter || char.isNumber || char == "_" else {
+                    throw TemplateError.parseError(message: "Invalid variable name '\(name)'", position: position)
+                }
             }
         }
     }

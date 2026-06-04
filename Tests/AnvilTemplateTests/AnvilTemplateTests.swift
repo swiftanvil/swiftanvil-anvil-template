@@ -240,6 +240,65 @@ struct TemplateRendererTests {
             _ = try template.render(context: ["items": "not an array"], mode: .strict)
         }
     }
+
+    @Test("renders dictionary dot-path variable")
+    func dictionaryDotPath() throws {
+        let template = try Template("{{user.name}} — {{user.email}}")
+        let output = try template.render(context: [
+            "user": ["name": "Swift", "email": "swift@anvil.dev"]
+        ])
+        #expect(output == "Swift — swift@anvil.dev")
+    }
+
+    @Test("renders loop with dictionary elements")
+    func loopWithDictionaries() throws {
+        let template = try Template("{{#each deps}}{{.name}}:{{.version}} {{/each}}")
+        let output = try template.render(context: [
+            "deps": [
+                ["name": "AnvilNetwork", "version": "1.0.0"],
+                ["name": "AnvilFlags", "version": "1.1.0"]
+            ]
+        ])
+        #expect(output == "AnvilNetwork:1.0.0 AnvilFlags:1.1.0 ")
+    }
+
+    @Test("renders nested dictionary dot-path")
+    func nestedDictionary() throws {
+        let template = try Template("{{config.build.debug}}")
+        let output = try template.render(context: [
+            "config": ["build": ["debug": true]]
+        ])
+        #expect(output == "true")
+    }
+
+    @Test("dictionary conditional is truthy when non-empty")
+    func dictionaryConditionalTruthy() throws {
+        let template = try Template("{{#if user}}found{{/if}}")
+        let output = try template.render(context: ["user": ["name": "Swift"]])
+        #expect(output == "found")
+    }
+
+    @Test("dictionary conditional is falsy when empty")
+    func dictionaryConditionalFalsy() throws {
+        let template = try Template("{{#if user}}found{{/if}}")
+        let output = try template.render(context: ["user": [String: String]()])
+        #expect(output == "")
+    }
+
+    @Test("missing dot-path returns empty in lenient mode")
+    func missingDotPathLenient() throws {
+        let template = try Template("{{user.missing}}")
+        let output = try template.render(context: ["user": ["name": "Swift"]], mode: .lenient)
+        #expect(output == "")
+    }
+
+    @Test("missing dot-path throws in strict mode")
+    func missingDotPathStrict() async throws {
+        let template = try Template("{{user.missing}}")
+        await #expect(throws: TemplateError.missingVariable("user.missing")) {
+            _ = try template.render(context: ["user": ["name": "Swift"]], mode: .strict)
+        }
+    }
 }
 
 // MARK: - Integration Tests
@@ -251,16 +310,16 @@ struct IntegrationTests {
         let source = """
         // swift-tools-version: 6.0
         import PackageDescription
-        
+
         let package = Package(
             name: "{{name}}",
-            platforms: [.iOS(.v16)],
+            platforms: [.iOS(.v18)],
             products: [
                 .library(name: "{{name}}", targets: ["{{name}}"]),
             ],
             dependencies: [
         {{#each dependencies}}
-                .package(url: "https://github.com/swiftanvil/{{.}}", from: "1.0.0"),
+                .package(url: "{{.url}}", from: "{{.version}}"),
         {{/each}}
             ],
             targets: [
@@ -268,15 +327,20 @@ struct IntegrationTests {
             ]
         )
         """
-        
+
         let template = try Template(source)
         let output = try template.render(context: [
             "name": "MyApp",
-            "dependencies": ["AnvilNetwork", "AnvilFlags"]
+            "dependencies": [
+                ["url": "https://github.com/swiftanvil/AnvilNetwork", "version": "1.0.0"],
+                ["url": "https://github.com/swiftanvil/AnvilFlags", "version": "1.1.0"]
+            ]
         ])
-        
+
         #expect(output.contains("name: \"MyApp\""))
         #expect(output.contains("AnvilNetwork"))
         #expect(output.contains("AnvilFlags"))
+        #expect(output.contains("from: \"1.0.0\""))
+        #expect(output.contains("from: \"1.1.0\""))
     }
 }

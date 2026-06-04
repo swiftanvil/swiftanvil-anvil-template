@@ -42,6 +42,7 @@ Inside a loop, `{{.}}` references the current element.
 | `Bool` | `true` → "true", `false` → "false". Used in `#if` |
 | `Int`, `Double` | String representation |
 | `[String]` | Iterated by `#each`. Inside loop, `{{.}}` is current element |
+| `[String: Any]` | Dictionary. Access fields with dot-paths: `{{user.name}}` |
 | `nil` / missing | Strict mode: error. Lenient mode: empty string |
 
 ## Usage
@@ -66,6 +67,26 @@ try template.render(context: ["name": "App"], mode: .strict)
 let template = try Template("{{#each items}}{{.}} {{/each}}")
 let output = try template.render(context: ["items": ["a", "b", "c"]])
 // "a b c "
+
+// With dictionary objects
+let template = try Template("""
+{{#each dependencies}}
+    .package(url: "{{url}}", from: "{{version}}"),
+{{/each}}
+""")
+let output = try template.render(context: [
+    "dependencies": [
+        ["url": "https://github.com/swiftanvil/AnvilNetwork", "version": "1.0.0"],
+        ["url": "https://github.com/swiftanvil/AnvilFlags", "version": "1.1.0"]
+    ]
+])
+
+// Dot-path access
+let template = try Template("{{user.name}} — {{user.email}}")
+let output = try template.render(context: [
+    "user": ["name": "Swift", "email": "swift@anvil.dev"]
+])
+// "Swift — swift@anvil.dev"
 ```
 
 ## Error Handling

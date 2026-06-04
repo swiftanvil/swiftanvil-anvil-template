@@ -7,8 +7,9 @@ public enum TemplateValue: Sendable {
     case int(Int)
     case double(Double)
     case array([TemplateValue])
+    case dictionary([String: TemplateValue])
     case null
-    
+
     /// Creates a TemplateValue from any supported type.
     public init(_ value: any Sendable) {
         if let string = value as? String {
@@ -21,11 +22,13 @@ public enum TemplateValue: Sendable {
             self = .double(double)
         } else if let array = value as? [any Sendable] {
             self = .array(array.map { TemplateValue($0) })
+        } else if let dictionary = value as? [String: any Sendable] {
+            self = .dictionary(dictionary.mapValues { TemplateValue($0) })
         } else {
             self = .null
         }
     }
-    
+
     /// Returns the string representation for rendering.
     public var rendered: String {
         switch self {
@@ -34,10 +37,11 @@ public enum TemplateValue: Sendable {
         case .int(let i): return String(i)
         case .double(let d): return String(d)
         case .array: return ""
+        case .dictionary: return ""
         case .null: return ""
         }
     }
-    
+
     /// Returns true if the value is truthy (for #if).
     public var isTruthy: Bool {
         switch self {
@@ -46,13 +50,30 @@ public enum TemplateValue: Sendable {
         case .int(let i): return i != 0
         case .double(let d): return d != 0
         case .array(let a): return !a.isEmpty
+        case .dictionary(let d): return !d.isEmpty
         case .null: return false
         }
     }
-    
+
     /// Returns the array contents if this is an array.
     public var arrayValue: [TemplateValue]? {
         if case .array(let a) = self { return a }
         return nil
+    }
+
+    /// Returns the dictionary contents if this is a dictionary.
+    public var dictionaryValue: [String: TemplateValue]? {
+        if case .dictionary(let d) = self { return d }
+        return nil
+    }
+
+    /// Resolves a dot-path such as "user.name" against this value.
+    /// If this value is a dictionary, looks up the first path component
+    /// and continues recursively. An empty path returns self.
+    public func resolve(path: [String]) -> TemplateValue? {
+        guard let first = path.first, !first.isEmpty else { return self }
+        guard let dict = dictionaryValue else { return nil }
+        guard let next = dict[first] else { return nil }
+        return next.resolve(path: Array(path.dropFirst()))
     }
 }
