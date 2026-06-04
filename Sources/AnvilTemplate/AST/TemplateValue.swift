@@ -1,7 +1,7 @@
 import Foundation
 
 /// A value that can be stored in a template context and rendered.
-public enum TemplateValue: Sendable {
+public enum TemplateValue: Sendable, Codable, Equatable {
     case string(String)
     case bool(Bool)
     case int(Int)
@@ -26,6 +26,62 @@ public enum TemplateValue: Sendable {
             self = .dictionary(dictionary.mapValues { TemplateValue($0) })
         } else {
             self = .null
+        }
+    }
+
+    // MARK: - Codable
+
+    enum CodingKeys: String, CodingKey {
+        case type, value
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decode(String.self, forKey: .type)
+        switch type {
+        case "string":
+            self = .string(try container.decode(String.self, forKey: .value))
+        case "bool":
+            self = .bool(try container.decode(Bool.self, forKey: .value))
+        case "int":
+            self = .int(try container.decode(Int.self, forKey: .value))
+        case "double":
+            self = .double(try container.decode(Double.self, forKey: .value))
+        case "array":
+            self = .array(try container.decode([TemplateValue].self, forKey: .value))
+        case "dictionary":
+            self = .dictionary(try container.decode([String: TemplateValue].self, forKey: .value))
+        case "null":
+            self = .null
+        default:
+            throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown TemplateValue type: \(type)")
+        }
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .string(let s):
+            try container.encode("string", forKey: .type)
+            try container.encode(s, forKey: .value)
+        case .bool(let b):
+            try container.encode("bool", forKey: .type)
+            try container.encode(b, forKey: .value)
+        case .int(let i):
+            try container.encode("int", forKey: .type)
+            try container.encode(i, forKey: .value)
+        case .double(let d):
+            try container.encode("double", forKey: .type)
+            try container.encode(d, forKey: .value)
+        case .array(let a):
+            try container.encode("array", forKey: .type)
+            try container.encode(a, forKey: .value)
+        case .dictionary(let d):
+            try container.encode("dictionary", forKey: .type)
+            try container.encode(d, forKey: .value)
+        case .null:
+            try container.encode("null", forKey: .type)
+            try container.encodeNil(forKey: .value)
         }
     }
 
