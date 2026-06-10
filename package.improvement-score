@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "score": 85,
+  "grade": "A",
+  "breakdown": {
+    "correctness": 25,
+    "coverage": 15,
+    "documentation": 15,
+    "api_stability": 15,
+    "performance": 0,
+    "ecosystem": 10,
+    "security": 5
+  },
+  "last_calculated": "2026-06-05T01:03:44Z",
+  "next_review": "2026-06-19T01:03:44Z",
+  "test_count": 4
+}

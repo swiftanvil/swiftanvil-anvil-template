@@ -2,38 +2,38 @@ import Foundation
 
 /// Parses template strings into an AST.
 public struct TemplateParser: Sendable {
-    public init() {}
-    
+    public init() { }
+
     /// Parses a template string into an array of AST nodes.
     public func parse(_ source: String) throws -> [TemplateNode] {
         var nodes: [TemplateNode] = []
         var position = source.startIndex
-        
+
         while position < source.endIndex {
             // Find next tag opening
             if let tagStart = source[position...].range(of: "{{") {
                 // Add text before tag
                 let textEnd = tagStart.lowerBound
                 if position < textEnd {
-                    let text = String(source[position..<textEnd])
+                    let text = String(source[position ..< textEnd])
                     if !text.isEmpty {
                         nodes.append(.text(text))
                     }
                 }
-                
+
                 // Find tag closing
                 let afterOpen = source.index(tagStart.upperBound, offsetBy: 0)
                 guard let tagEnd = source[afterOpen...].range(of: "}}") else {
                     let pos = source.distance(from: source.startIndex, to: tagStart.lowerBound)
                     throw TemplateError.parseError(message: "Unclosed tag", position: pos)
                 }
-                
-                let tagContent = String(source[afterOpen..<tagEnd.lowerBound]).trimmingCharacters(in: .whitespaces)
-                
+
+                let tagContent = String(source[afterOpen ..< tagEnd.lowerBound]).trimmingCharacters(in: .whitespaces)
+
                 // Parse tag content
                 let tagPos = source.distance(from: source.startIndex, to: tagStart.lowerBound)
                 let node = try parseTag(tagContent, position: tagPos)
-                
+
                 if let conditional = node as? ConditionalTag {
                     let (bodyNodes, newPosition) = try parseBlock(
                         source: source,
@@ -72,37 +72,37 @@ public struct TemplateParser: Sendable {
                 break
             }
         }
-        
+
         return nodes
     }
-    
+
     // MARK: - Tag Parsing
-    
+
     private func parseTag(_ content: String, position: Int) throws -> any Tag {
         guard !content.isEmpty else {
             throw TemplateError.parseError(message: "Empty tag", position: position)
         }
-        
+
         // Comment
         if content.hasPrefix("!") {
             let text = String(content.dropFirst()).trimmingCharacters(in: .whitespaces)
             return CommentTag(text: text)
         }
-        
+
         // Conditional opening
         if content.hasPrefix("#if ") {
             let variable = String(content.dropFirst(4)).trimmingCharacters(in: .whitespaces)
             try validateVariableName(variable, position: position)
             return ConditionalTag(variable: variable)
         }
-        
+
         // Loop opening
         if content.hasPrefix("#each ") {
             let variable = String(content.dropFirst(6)).trimmingCharacters(in: .whitespaces)
             try validateVariableName(variable, position: position)
             return LoopTag(variable: variable)
         }
-        
+
         // Closing tags (should not appear at top level)
         if content.hasPrefix("/") {
             throw TemplateError.parseError(
@@ -110,51 +110,51 @@ public struct TemplateParser: Sendable {
                 position: position
             )
         }
-        
+
         // Unknown directive
         if content.hasPrefix("#") {
             let directive = String(content.dropFirst()).split(separator: " ").first.map(String.init) ?? content
             throw TemplateError.parseError(message: "Unknown directive '\(directive)'", position: position)
         }
-        
+
         // Variable
         try validateVariableName(content, position: position)
         return VariableTag(name: content)
     }
-    
+
     private func parseBlock(
         source: String,
         start: String.Index,
         endTag: String,
-        openingTag: String,
-        position: Int
+        openingTag _: String,
+        position _: Int
     ) throws -> ([TemplateNode], String.Index) {
         var nodes: [TemplateNode] = []
         var position = start
         var depth = 1
-        
+
         while position < source.endIndex {
             // Find next tag
             if let tagStart = source[position...].range(of: "{{") {
                 // Add text before tag
                 let textEnd = tagStart.lowerBound
                 if position < textEnd {
-                    let text = String(source[position..<textEnd])
+                    let text = String(source[position ..< textEnd])
                     if !text.isEmpty {
                         nodes.append(.text(text))
                     }
                 }
-                
+
                 // Find tag closing
                 let afterOpen = tagStart.upperBound
                 guard let tagEnd = source[afterOpen...].range(of: "}}") else {
                     let pos = source.distance(from: source.startIndex, to: tagStart.lowerBound)
                     throw TemplateError.parseError(message: "Unclosed tag", position: pos)
                 }
-                
-                let tagContent = String(source[afterOpen..<tagEnd.lowerBound]).trimmingCharacters(in: .whitespaces)
+
+                let tagContent = String(source[afterOpen ..< tagEnd.lowerBound]).trimmingCharacters(in: .whitespaces)
                 let tagPos = source.distance(from: source.startIndex, to: tagStart.lowerBound)
-                
+
                 // Check for nested blocks
                 if tagContent.hasPrefix("#if ") || tagContent.hasPrefix("#each ") {
                     throw TemplateError.parseError(
@@ -162,7 +162,7 @@ public struct TemplateParser: Sendable {
                         position: tagPos
                     )
                 }
-                
+
                 // Check for comments inside blocks
                 if tagContent.hasPrefix("!") {
                     throw TemplateError.parseError(
@@ -170,7 +170,7 @@ public struct TemplateParser: Sendable {
                         position: tagPos
                     )
                 }
-                
+
                 // Check for matching end tag (using trimmed content for whitespace tolerance)
                 if tagContent == String(endTag.dropFirst(2).dropLast(2)) {
                     depth -= 1
@@ -178,7 +178,7 @@ public struct TemplateParser: Sendable {
                         return (nodes, tagEnd.upperBound)
                     }
                 } else if tagContent.hasPrefix("/") {
-                    let fullTag = String(source[tagStart.lowerBound..<tagEnd.upperBound])
+                    let fullTag = String(source[tagStart.lowerBound ..< tagEnd.upperBound])
                     throw TemplateError.parseError(
                         message: "Expected '\(endTag)', found '\(fullTag)'",
                         position: tagPos
@@ -188,7 +188,7 @@ public struct TemplateParser: Sendable {
                     try validateVariableName(tagContent, position: tagPos)
                     nodes.append(.variable(tagContent))
                 }
-                
+
                 position = tagEnd.upperBound
             } else {
                 // No closing tag found
@@ -202,10 +202,13 @@ public struct TemplateParser: Sendable {
                 )
             }
         }
-        
-        throw TemplateError.parseError(message: "Unclosed block", position: position == source.startIndex ? 0 : source.distance(from: source.startIndex, to: position))
+
+        throw TemplateError.parseError(
+            message: "Unclosed block",
+            position: position == source.startIndex ? 0 : source.distance(from: source.startIndex, to: position)
+        )
     }
-    
+
     private func validateVariableName(_ name: String, position: Int) throws {
         guard !name.isEmpty else {
             throw TemplateError.parseError(message: "Empty variable name", position: position)
@@ -243,7 +246,7 @@ public struct TemplateParser: Sendable {
 
 // MARK: - Tag Types
 
-private protocol Tag: Sendable {}
+private protocol Tag: Sendable { }
 
 private struct VariableTag: Tag { let name: String }
 private struct ConditionalTag: Tag { let variable: String }

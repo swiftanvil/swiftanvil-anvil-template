@@ -4,7 +4,6 @@ import Testing
 
 @Suite("TemplateManifest")
 struct TemplateManifestTests {
-
     // MARK: - Valid Manifests
 
     @Test("validates minimal manifest")
@@ -44,7 +43,13 @@ struct TemplateManifestTests {
                 TemplateVariable(name: "projectName", type: .string, prompt: "Project name", default: .string("MyApp")),
                 TemplateVariable(name: "includeTests", type: .bool, prompt: "Include tests?", default: .bool(true)),
                 TemplateVariable(name: "count", type: .int, prompt: "Count", default: .int(5)),
-                TemplateVariable(name: "style", type: .choice, prompt: "Style", default: .string("modern"), choices: ["modern", "classic"])
+                TemplateVariable(
+                    name: "style",
+                    type: .choice,
+                    prompt: "Style",
+                    default: .string("modern"),
+                    choices: ["modern", "classic"]
+                )
             ]
         )
         try manifest.validate()
@@ -65,7 +70,10 @@ struct TemplateManifestTests {
             platforms: ["macOS 15+"],
             files: [TemplateFileEntry(source: "a", destination: "b")]
         )
-        #expect(throws: TemplateManifestError.invalidField(name: "name", reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen")) {
+        #expect(throws: TemplateManifestError.invalidField(
+            name: "name",
+            reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen"
+        )) {
             try manifest.validate()
         }
     }
@@ -83,7 +91,10 @@ struct TemplateManifestTests {
             platforms: ["macOS 15+"],
             files: [TemplateFileEntry(source: "a", destination: "b")]
         )
-        #expect(throws: TemplateManifestError.invalidField(name: "name", reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen")) {
+        #expect(throws: TemplateManifestError.invalidField(
+            name: "name",
+            reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen"
+        )) {
             try manifest.validate()
         }
     }
@@ -101,7 +112,10 @@ struct TemplateManifestTests {
             platforms: ["macOS 15+"],
             files: [TemplateFileEntry(source: "a", destination: "b")]
         )
-        #expect(throws: TemplateManifestError.invalidField(name: "name", reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen")) {
+        #expect(throws: TemplateManifestError.invalidField(
+            name: "name",
+            reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen"
+        )) {
             try manifest.validate()
         }
     }
@@ -119,7 +133,10 @@ struct TemplateManifestTests {
             platforms: ["macOS 15+"],
             files: [TemplateFileEntry(source: "a", destination: "b")]
         )
-        #expect(throws: TemplateManifestError.invalidField(name: "name", reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen")) {
+        #expect(throws: TemplateManifestError.invalidField(
+            name: "name",
+            reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen"
+        )) {
             try manifest.validate()
         }
     }
@@ -295,7 +312,10 @@ struct TemplateManifestTests {
                 TemplateVariable(name: "style", type: .choice, prompt: "Style")
             ]
         )
-        #expect(throws: TemplateManifestError.invalidField(name: "variables.style.choices", reason: "Choice variables must have non-empty choices array")) {
+        #expect(throws: TemplateManifestError.invalidField(
+            name: "variables.style.choices",
+            reason: "Choice variables must have non-empty choices array"
+        )) {
             try manifest.validate()
         }
     }
@@ -318,7 +338,13 @@ struct TemplateManifestTests {
                 TemplateVariable(name: "name", type: .string, prompt: "Name", default: .string("MyApp")),
                 TemplateVariable(name: "count", type: .int, prompt: "Count", default: .int(42)),
                 TemplateVariable(name: "enabled", type: .bool, prompt: "Enabled", default: .bool(true)),
-                TemplateVariable(name: "style", type: .choice, prompt: "Style", default: .string("modern"), choices: ["modern", "classic"])
+                TemplateVariable(
+                    name: "style",
+                    type: .choice,
+                    prompt: "Style",
+                    default: .string("modern"),
+                    choices: ["modern", "classic"]
+                )
             ]
         )
         let defaults = manifest.defaultVariableValues()
@@ -403,7 +429,7 @@ struct TemplateManifestTests {
             author: "swiftanvil",
             license: "MIT",
             platforms: ["macOS 15+"],
-            tags: (1...11).map { "tag\($0)" },
+            tags: (1 ... 11).map { "tag\($0)" },
             files: [TemplateFileEntry(source: "a", destination: "b")]
         )
         #expect(throws: TemplateManifestError.invalidField(name: "tags", reason: "Max 10 tags")) {

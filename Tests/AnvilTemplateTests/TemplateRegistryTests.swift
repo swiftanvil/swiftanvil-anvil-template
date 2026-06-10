@@ -4,7 +4,6 @@ import Testing
 
 @Suite("TemplateRegistry")
 struct TemplateRegistryTests {
-
     // MARK: - Validation
 
     @Test("validates minimal registry")
@@ -19,7 +18,10 @@ struct TemplateRegistryTests {
                     author: "swiftanvil",
                     license: "MIT",
                     platforms: ["iOS 18+", "macOS 15+"],
-                    source: TemplateSource(url: "https://github.com/swiftanvil/swiftanvil-template-swiftui", tag: "1.0.0"),
+                    source: TemplateSource(
+                        url: "https://github.com/swiftanvil/swiftanvil-template-swiftui",
+                        tag: "1.0.0"
+                    ),
                     manifestSHA256: "abc123"
                 )
             ]
@@ -51,7 +53,10 @@ struct TemplateRegistryTests {
                     author: "swiftanvil",
                     license: "MIT",
                     platforms: ["iOS 18+"],
-                    source: TemplateSource(url: "https://github.com/swiftanvil/swiftanvil-template-swiftui", tag: "1.0.0"),
+                    source: TemplateSource(
+                        url: "https://github.com/swiftanvil/swiftanvil-template-swiftui",
+                        tag: "1.0.0"
+                    ),
                     manifestSHA256: "abc123"
                 )
             ]
@@ -219,7 +224,6 @@ struct TemplateRegistryTests {
 
 @Suite("TemplateRegistryFetcher")
 struct TemplateRegistryFetcherTests {
-
     @Test("fetches from cache when valid")
     func cacheHit() async throws {
         let registry = TemplateRegistry(
@@ -243,8 +247,8 @@ struct TemplateRegistryFetcherTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let fetcher = TemplateRegistryFetcher(
-            registryURL: URL(string: "https://example.com/registry.json")!,
+        let fetcher = try TemplateRegistryFetcher(
+            registryURL: #require(URL(string: "https://example.com/registry.json")),
             cacheDirectory: tempDir,
             cacheTTL: 3600
         )
@@ -281,8 +285,8 @@ struct TemplateRegistryFetcherTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let fetcher = TemplateRegistryFetcher(
-            registryURL: URL(string: "https://example.com/registry.json")!,
+        let fetcher = try TemplateRegistryFetcher(
+            registryURL: #require(URL(string: "https://example.com/registry.json")),
             cacheDirectory: tempDir,
             cacheTTL: 3600
         )
@@ -297,14 +301,14 @@ struct TemplateRegistryFetcherTests {
     }
 
     @Test("throws when offline and no cache")
-    func offlineNoCache() async {
+    func offlineNoCache() async throws {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let fetcher = TemplateRegistryFetcher(
-            registryURL: URL(string: "https://example.com/registry.json")!,
+        let fetcher = try TemplateRegistryFetcher(
+            registryURL: #require(URL(string: "https://example.com/registry.json")),
             cacheDirectory: tempDir,
             cacheTTL: 3600
         )
@@ -321,8 +325,8 @@ struct TemplateRegistryFetcherTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let fetcher = TemplateRegistryFetcher(
-            registryURL: URL(string: "https://example.com/registry.json")!,
+        let fetcher = try TemplateRegistryFetcher(
+            registryURL: #require(URL(string: "https://example.com/registry.json")),
             cacheDirectory: tempDir,
             cacheTTL: 3600
         )

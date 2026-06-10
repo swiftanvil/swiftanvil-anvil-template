@@ -112,13 +112,17 @@ public struct TemplateManifest: Sendable, Codable, Equatable {
         }
 
         // Name: lowercase alphanumeric + hyphens, max 50
-        guard name.count <= 50,
-              name.allSatisfy({ $0.isLowercase || $0.isNumber || $0 == "-" }),
-              !name.isEmpty,
-              name.first != "-",
-              name.last != "-"
+        guard
+            name.count <= 50,
+            name.allSatisfy({ $0.isLowercase || $0.isNumber || $0 == "-" }),
+            !name.isEmpty,
+            name.first != "-",
+            name.last != "-"
         else {
-            throw TemplateManifestError.invalidField(name: "name", reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen")
+            throw TemplateManifestError.invalidField(
+                name: "name",
+                reason: "Must be 1-50 lowercase alphanumeric or hyphens, not starting/ending with hyphen"
+            )
         }
 
         // SemVer validation

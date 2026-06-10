@@ -2,8 +2,8 @@ import Foundation
 
 /// Renders a template AST into a string using a context.
 public struct TemplateRenderer: Sendable {
-    public init() {}
-    
+    public init() { }
+
     /// Renders an array of AST nodes.
     public func render(nodes: [TemplateNode], context: TemplateContext, mode: RenderMode) throws -> String {
         var output = ""
@@ -12,13 +12,13 @@ public struct TemplateRenderer: Sendable {
         }
         return output
     }
-    
+
     private func render(node: TemplateNode, context: TemplateContext, mode: RenderMode) throws -> String {
         switch node {
-        case .text(let text):
+        case let .text(text):
             return text
-            
-        case .variable(let name):
+
+        case let .variable(name):
             if let value = context.get(name) {
                 return value.rendered
             }
@@ -28,8 +28,8 @@ public struct TemplateRenderer: Sendable {
             case .lenient:
                 return ""
             }
-            
-        case .conditional(let variable, let body):
+
+        case let .conditional(variable, body):
             guard let value = context.get(variable) else {
                 switch mode {
                 case .strict:
@@ -42,8 +42,8 @@ public struct TemplateRenderer: Sendable {
                 return try render(nodes: body, context: context, mode: mode)
             }
             return ""
-            
-        case .loop(let variable, let body):
+
+        case let .loop(variable, body):
             guard let value = context.get(variable) else {
                 switch mode {
                 case .strict:
@@ -66,7 +66,7 @@ public struct TemplateRenderer: Sendable {
                 output += try render(nodes: body, context: loopContext, mode: mode)
             }
             return output
-            
+
         case .comment:
             return ""
         }

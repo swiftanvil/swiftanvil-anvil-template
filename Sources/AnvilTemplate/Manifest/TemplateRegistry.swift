@@ -123,10 +123,10 @@ public actor TemplateRegistryFetcher {
         urlSession: URLSession = .shared
     ) {
         self.registryURL = registryURL
-        self.cacheURL = cacheDirectory?.appendingPathComponent("registry.json")
+        cacheURL = cacheDirectory?.appendingPathComponent("registry.json")
             ?? FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-                .appendingPathComponent("swiftanvil")
-                .appendingPathComponent("registry.json")
+            .appendingPathComponent("swiftanvil")
+            .appendingPathComponent("registry.json")
         self.cacheTTL = cacheTTL
         self.urlSession = urlSession
     }
@@ -191,9 +191,10 @@ public actor TemplateRegistryFetcher {
 
     private func isCacheExpired() -> Bool {
         let fm = FileManager.default
-        guard fm.fileExists(atPath: cacheURL.path),
-              let attrs = try? fm.attributesOfItem(atPath: cacheURL.path),
-              let modDate = attrs[.modificationDate] as? Date
+        guard
+            fm.fileExists(atPath: cacheURL.path),
+            let attrs = try? fm.attributesOfItem(atPath: cacheURL.path),
+            let modDate = attrs[.modificationDate] as? Date
         else {
             return true
         }

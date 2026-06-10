@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(CryptoKit)
-import CryptoKit
+    import CryptoKit
 #endif
 
 /// Errors that can occur during template installation.
@@ -91,7 +91,7 @@ public actor TemplateInstaller {
             let targetDir = destination.appendingPathComponent(manifest.name, isDirectory: true)
 
             // Check for existing directory
-            if fileManager.fileExists(atPath: targetDir.path) && !force {
+            if fileManager.fileExists(atPath: targetDir.path), !force {
                 throw TemplateInstallError.destinationExists(targetDir.path)
             }
 
@@ -151,7 +151,11 @@ public actor TemplateInstaller {
             } else if let manifestError = error as? TemplateManifestError {
                 throw TemplateInstallError.manifestValidationFailed(manifestError)
             } else {
-                throw TemplateInstallError.fileCopyFailed(source: "", destination: "", reason: error.localizedDescription)
+                throw TemplateInstallError.fileCopyFailed(
+                    source: "",
+                    destination: "",
+                    reason: error.localizedDescription
+                )
             }
         }
     }
@@ -208,14 +212,22 @@ public actor TemplateInstaller {
         // If it contains actual YAML, we need a YAML parser. For now, attempt to parse
         // the file content as JSON regardless of extension.
         let content = String(data: data, encoding: .utf8) ?? ""
-        if let jsonData = content.data(using: .utf8),
-           let manifest = try? JSONDecoder().decode(TemplateManifest.self, from: jsonData) {
+        if
+            let jsonData = content.data(using: .utf8),
+            let manifest = try? JSONDecoder().decode(TemplateManifest.self, from: jsonData)
+        {
             return manifest
         }
-        throw TemplateManifestError.invalidField(name: "manifest", reason: "Unable to parse manifest. Only JSON is supported in this version.")
+        throw TemplateManifestError.invalidField(
+            name: "manifest",
+            reason: "Unable to parse manifest. Only JSON is supported in this version."
+        )
     }
 
-    private func mergeVariables(manifest: TemplateManifest, userValues: [String: TemplateValue]) -> [String: TemplateValue] {
+    private func mergeVariables(
+        manifest: TemplateManifest,
+        userValues: [String: TemplateValue]
+    ) -> [String: TemplateValue] {
         var result = manifest.defaultVariableValues()
         for (key, value) in userValues {
             result[key] = value
@@ -225,27 +237,27 @@ public actor TemplateInstaller {
 
     private func sha256(_ data: Data) -> String {
         #if canImport(CryptoKit)
-        let digest = SHA256.hash(data: data)
-        return digest.map { String(format: "%02x", $0) }.joined()
+            let digest = SHA256.hash(data: data)
+            return digest.map { String(format: "%02x", $0) }.joined()
         #else
-        // Fallback for platforms without CryptoKit
-        return ""
+            // Fallback for platforms without CryptoKit
+            return ""
         #endif
     }
 
     private func currentPlatform() throws -> String {
         #if os(iOS)
-        return "iOS 18+"
+            return "iOS 18+"
         #elseif os(macOS)
-        return "macOS 15+"
+            return "macOS 15+"
         #elseif os(tvOS)
-        return "tvOS 18+"
+            return "tvOS 18+"
         #elseif os(watchOS)
-        return "watchOS 11+"
+            return "watchOS 11+"
         #elseif os(visionOS)
-        return "visionOS 2+"
+            return "visionOS 2+"
         #else
-        throw TemplateInstallError.unsupportedPlatform("Unknown platform")
+            throw TemplateInstallError.unsupportedPlatform("Unknown platform")
         #endif
     }
 }

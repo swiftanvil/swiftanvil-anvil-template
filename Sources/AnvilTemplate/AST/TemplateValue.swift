@@ -40,43 +40,47 @@ public enum TemplateValue: Sendable, Codable, Equatable {
         let type = try container.decode(String.self, forKey: .type)
         switch type {
         case "string":
-            self = .string(try container.decode(String.self, forKey: .value))
+            self = try .string(container.decode(String.self, forKey: .value))
         case "bool":
-            self = .bool(try container.decode(Bool.self, forKey: .value))
+            self = try .bool(container.decode(Bool.self, forKey: .value))
         case "int":
-            self = .int(try container.decode(Int.self, forKey: .value))
+            self = try .int(container.decode(Int.self, forKey: .value))
         case "double":
-            self = .double(try container.decode(Double.self, forKey: .value))
+            self = try .double(container.decode(Double.self, forKey: .value))
         case "array":
-            self = .array(try container.decode([TemplateValue].self, forKey: .value))
+            self = try .array(container.decode([TemplateValue].self, forKey: .value))
         case "dictionary":
-            self = .dictionary(try container.decode([String: TemplateValue].self, forKey: .value))
+            self = try .dictionary(container.decode([String: TemplateValue].self, forKey: .value))
         case "null":
             self = .null
         default:
-            throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown TemplateValue type: \(type)")
+            throw DecodingError.dataCorruptedError(
+                forKey: .type,
+                in: container,
+                debugDescription: "Unknown TemplateValue type: \(type)"
+            )
         }
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
-        case .string(let s):
+        case let .string(s):
             try container.encode("string", forKey: .type)
             try container.encode(s, forKey: .value)
-        case .bool(let b):
+        case let .bool(b):
             try container.encode("bool", forKey: .type)
             try container.encode(b, forKey: .value)
-        case .int(let i):
+        case let .int(i):
             try container.encode("int", forKey: .type)
             try container.encode(i, forKey: .value)
-        case .double(let d):
+        case let .double(d):
             try container.encode("double", forKey: .type)
             try container.encode(d, forKey: .value)
-        case .array(let a):
+        case let .array(a):
             try container.encode("array", forKey: .type)
             try container.encode(a, forKey: .value)
-        case .dictionary(let d):
+        case let .dictionary(d):
             try container.encode("dictionary", forKey: .type)
             try container.encode(d, forKey: .value)
         case .null:
@@ -88,38 +92,38 @@ public enum TemplateValue: Sendable, Codable, Equatable {
     /// Returns the string representation for rendering.
     public var rendered: String {
         switch self {
-        case .string(let s): return s
-        case .bool(let b): return b ? "true" : "false"
-        case .int(let i): return String(i)
-        case .double(let d): return String(d)
-        case .array: return ""
-        case .dictionary: return ""
-        case .null: return ""
+        case let .string(s): s
+        case let .bool(b): b ? "true" : "false"
+        case let .int(i): String(i)
+        case let .double(d): String(d)
+        case .array: ""
+        case .dictionary: ""
+        case .null: ""
         }
     }
 
     /// Returns true if the value is truthy (for #if).
     public var isTruthy: Bool {
         switch self {
-        case .bool(let b): return b
-        case .string(let s): return !s.isEmpty
-        case .int(let i): return i != 0
-        case .double(let d): return d != 0
-        case .array(let a): return !a.isEmpty
-        case .dictionary(let d): return !d.isEmpty
-        case .null: return false
+        case let .bool(b): b
+        case let .string(s): !s.isEmpty
+        case let .int(i): i != 0
+        case let .double(d): d != 0
+        case let .array(a): !a.isEmpty
+        case let .dictionary(d): !d.isEmpty
+        case .null: false
         }
     }
 
     /// Returns the array contents if this is an array.
     public var arrayValue: [TemplateValue]? {
-        if case .array(let a) = self { return a }
+        if case let .array(a) = self { return a }
         return nil
     }
 
     /// Returns the dictionary contents if this is a dictionary.
     public var dictionaryValue: [String: TemplateValue]? {
-        if case .dictionary(let d) = self { return d }
+        if case let .dictionary(d) = self { return d }
         return nil
     }
 

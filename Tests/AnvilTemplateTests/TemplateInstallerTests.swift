@@ -1,13 +1,12 @@
 import Foundation
 #if canImport(CryptoKit)
-import CryptoKit
+    import CryptoKit
 #endif
 import Testing
 @testable import AnvilTemplate
 
 @Suite("TemplateInstaller")
 struct TemplateInstallerTests {
-
     private func makeTempDir() throws -> URL {
         let dir = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -66,7 +65,10 @@ struct TemplateInstallerTests {
         let destDir = workDir.appendingPathComponent("dest", isDirectory: true)
         try FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
 
-        await #expect(throws: TemplateInstallError.manifestValidationFailed(.invalidManifestVersion(expected: 1, actual: 99))) {
+        await #expect(throws: TemplateInstallError.manifestValidationFailed(.invalidManifestVersion(
+            expected: 1,
+            actual: 99
+        ))) {
             _ = try await installer.install(entry: entry, to: destDir)
         }
     }
@@ -119,7 +121,10 @@ struct TemplateInstallerTests {
         let destDir = workDir.appendingPathComponent("dest", isDirectory: true)
         try FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
 
-        await #expect(throws: TemplateInstallError.manifestSHA256Mismatch(expected: "wrongsha256", actual: "8f59364f4dafc6cf95b308c4ffd170e3c4d5c1a94809779258cd941a61d74981")) {
+        await #expect(throws: TemplateInstallError.manifestSHA256Mismatch(
+            expected: "wrongsha256",
+            actual: "8f59364f4dafc6cf95b308c4ffd170e3c4d5c1a94809779258cd941a61d74981"
+        )) {
             _ = try await installer.install(entry: entry, to: destDir)
         }
     }
@@ -439,9 +444,9 @@ struct TemplateInstallerTests {
 
 private func sha256(_ data: Data) -> String {
     #if canImport(CryptoKit)
-    let digest = CryptoKit.SHA256.hash(data: data)
-    return digest.map { String(format: "%02x", $0) }.joined()
+        let digest = CryptoKit.SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
     #else
-    return ""
+        return ""
     #endif
 }
